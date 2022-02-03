@@ -11,7 +11,7 @@ contract CardPack is ERC1155, AccessControl {
     enum CardPackType {
         COMMON,
         EPIC,
-        LEGENDAY
+        LEGENDARY
     }
     
     constructor() ERC1155("cardpacks") {

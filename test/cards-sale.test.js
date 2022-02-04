@@ -49,4 +49,26 @@ describe("Card Sale test", function() {
         expect(await cardPack.balanceOf(customer.address, cardPackTypes.COMMON)).to.equal(1);
         expect(await gameCoin.balanceOf(owner.address)).to.equal(BigInt(oldOwnerBalance) + BigInt(cardPackPrices.COMMON));
     });
+
+    describe("open pack test", function() {
+        let CardPackOpening, cardPackOpening;
+        beforeEach(async () => {
+            await gameCoin.transfer(customer.address, 1000);
+            await gameCoin.connect(customer).increaseAllowance(cardPackSale.address, 1000);
+            await cardPackSale.connect(customer).buyCardPack(cardPackTypes.LEGENDARY);
+
+            CardPackOpening = await ethers.getContractFactory("CardPackOpening");
+            cardPackOpening = await CardPackOpening.deploy();
+            await cardPackOpening.deployed();
+
+            await cardPackOpening.setCardPack(cardPack.address);
+            await cardPack.addManipulator(cardPackOpening.address);
+            
+            // TODO: add card
+            
+        });
+        it("open", async function() {
+            await cardPackOpening.connect(customer).openCardPack(cardPackTypes.LEGENDARY);
+        });
+    });
 });

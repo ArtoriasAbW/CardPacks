@@ -13,7 +13,7 @@ contract Card is ERC1155, AccessControl {
         _setRoleAdmin(CARD_MINTER, ADMIN);
     }
 
-    function create(uint256 cardId) public onlyRole(CARD_MINTER) {
+    function createCard(uint256 cardId) public onlyRole(CARD_MINTER) {
         _mint(msg.sender, cardId, 1, "");
     }
 

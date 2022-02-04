@@ -1,13 +1,14 @@
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./CardPack.sol";
+import "./GameCoin.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CardPackSale is Ownable {
 
     address cardPackAddress;
-    IERC20 gameCoin;
+    address gameCoinAddress;
 
     mapping (CardPack.CardPackType => uint256) prices;
 
@@ -16,14 +17,16 @@ contract CardPackSale is Ownable {
     }
 
     function buyCardPack(CardPack.CardPackType packType) public {
-        uint256 price = prices[packType];
-        require(price > 0, "invalid packType");
-        gameCoin.transferFrom(msg.sender, address(this), price);
+        GameCoin(gameCoinAddress).transferFrom(msg.sender, owner(), prices[packType]);
         CardPack(cardPackAddress).createCardPack(msg.sender, packType);
     }
 
     function setCardPack(address cardPackAddress_) public onlyOwner {
         cardPackAddress = cardPackAddress_;
+    }
+
+    function setGameCoin(address gameCoinAddress_) public onlyOwner {
+        gameCoinAddress = gameCoinAddress_;
     }
 
     function _setPrices() internal {

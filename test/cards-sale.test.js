@@ -51,11 +51,11 @@ describe("Card Sale test", function() {
     });
 
     describe("open pack test", function() {
-        let CardPackOpening, cardPackOpening;
+        let CardPackOpening, cardPackOpening, Card, card;
         beforeEach(async () => {
             await gameCoin.transfer(customer.address, 1000);
             await gameCoin.connect(customer).increaseAllowance(cardPackSale.address, 1000);
-            await cardPackSale.connect(customer).buyCardPack(cardPackTypes.LEGENDARY);
+            await cardPackSale.connect(customer).buyCardPack(cardPackTypes.EPIC);
 
             CardPackOpening = await ethers.getContractFactory("CardPackOpening");
             cardPackOpening = await CardPackOpening.deploy();
@@ -64,11 +64,15 @@ describe("Card Sale test", function() {
             await cardPackOpening.setCardPack(cardPack.address);
             await cardPack.addManipulator(cardPackOpening.address);
             
-            // TODO: add card
-            
+            Card = await ethers.getContractFactory("Card");
+            card = await Card.deploy();
+            await card.deployed();
+
+            await card.addManipulator(cardPackOpening.address);
+            await cardPackOpening.setCard(card.address);
         });
-        it("open", async function() {
-            await cardPackOpening.connect(customer).openCardPack(cardPackTypes.LEGENDARY);
-        });
+        // it("open", async function() {
+        //     await cardPackOpening.connect(customer).openCardPack(cardPackTypes.EPIC);
+        // });
     });
 });

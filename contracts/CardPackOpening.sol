@@ -4,6 +4,7 @@ import "./CardPack.sol";
 import "./Card.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 contract CardPackOpening is Ownable, VRFConsumerBase {
 
@@ -13,7 +14,20 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
     bytes32 internal keyHash;
     uint256 internal fee;
 
+    struct OpeningInfo {
+        address packOwner;
+        CardPack.CardPackType packType;
+    }
+
+    mapping (bytes32 => OpeningInfo) requestToPackOwner;
+
     event CardReceived(address account, uint256 cardId);
+
+    // swapInfo [rinkeby]
+    address routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address WETHaddr = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+    address LINKaddr = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
+    IUniswapV2Router02 router;
 
     constructor() 
         Ownable() 
@@ -24,16 +38,16 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
     {
         keyHash = 0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311;
         fee = 0.1 * 10 ** 18;
+        router = IUniswapV2Router02(routerAddress);
     }
 
-    struct OpeningInfo {
-        address packOwner;
-        CardPack.CardPackType packType;
-    }
-
-    mapping (bytes32 => OpeningInfo) requestToPackOwner;
-
-    function openCardPack(CardPack.CardPackType packType) public returns (bytes32) {
+    function openCardPack(CardPack.CardPackType packType) public payable returns (bytes32) {
+        address[] memory path = new address[](2);
+        path[0] = WETHaddr;
+        path[1] = LINKaddr;
+        router.swapETHForExactTokens{value: msg.value}(fee, path, address(this), block.timestamp + 30 minutes);
+        (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(sent, "Failed to send Ether");
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK");
         CardPack(cardPackAddress).removeCardPack(msg.sender, packType);
         bytes32 requestId = requestRandomness(keyHash, fee);

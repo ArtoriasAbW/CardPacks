@@ -41,6 +41,10 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
         router = IUniswapV2Router02(routerAddress);
     }
 
+    fallback() external payable {
+        
+    }
+
     function openCardPack(CardPack.CardPackType packType) public payable returns (bytes32) {
         address[] memory path = new address[](2);
         path[0] = WETHaddr;

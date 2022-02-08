@@ -1,10 +1,10 @@
 async function main() {
     await testDeployed(
-        '0x38c378A5A68a8B2f0828CC27e88B712A4610572f',
-        '0x48c56950d0dE8614cFBd73FdcEF27AA25899816A',
-        '0x500518b560eCB0F2B529c94986b021Eb0c18A758',
-        '0x59Eb8ffcE73D9B39b14237f220135e33aDe7000a',
-        '0xF6adcFD260DF15B1014ed1249b54AA5f74E138BB'
+        '0xf33CBa8da814d05e5c912D7fDBdEd7F9A1BF01d7',
+        '0x3D261e37cB04f8118c104946da3f5968762c3c49',
+        '0xC1EaF7a09e715AEAC6ff482c55E840db87BCCc30',
+        '0xB4Bc9D64d16B8E1eA6e25eFdDB4e98f11cDd6F3d',
+        '0x658CeF3c1eb42587bdaf36770667cE13314C5dE1'
     );
 }
 
@@ -26,7 +26,7 @@ async function testDeployed(gameCoinAddr, cardPackAddr, cardPackSaleAddr, cardPa
 
     // await gameCoin.increaseAllowance(cardPackSale.address, 100);
     // await cardPackSale.buyCardPack(1);
-    console.log(await cardPack.balanceOf(account, 1));
+    // console.log(await cardPack.balanceOf(account, 1));
     console.log(await card.balanceOf(account, 1));
     console.log(await card.balanceOf(account, 2));
     console.log(await card.balanceOf(account, 3));
@@ -37,7 +37,8 @@ async function testDeployed(gameCoinAddr, cardPackAddr, cardPackSaleAddr, cardPa
     console.log(await card.balanceOf(account, 8));
     console.log(await card.balanceOf(account, 9));
     console.log(await card.balanceOf(account, 10));
-    // await cardPackOpening.openCardPack(1);
+    // const options = {value: ethers.utils.parseEther("0.05")};
+    // await cardPackOpening.openCardPack(1, options);
 }
   
   main()

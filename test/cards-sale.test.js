@@ -71,8 +71,10 @@ describe("Card Sale test", function() {
             await card.addManipulator(cardPackOpening.address);
             await cardPackOpening.setCard(card.address);
         });
-        // it("open", async function() {
-        //     await cardPackOpening.connect(customer).openCardPack(cardPackTypes.EPIC);
-        // });
+        it("open", async function() {
+            for (i = 1; i < 101; i++) {
+                console.log(await cardPack.getCardByDistribution(2, i));
+            }
+        });
     });
 });

@@ -10,9 +10,6 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 contract CardPackOpening is Ownable, VRFConsumerBase {
 
-    address cardPackAddress;
-    address cardAddress;
-
     CardPack cardPack;
     Card card;
 
@@ -84,7 +81,7 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
         uint256 packType = requestToPackOwner[requestId].packType;
         address packOwner = requestToPackOwner[requestId].packOwner;
         uint256 cardId = cardPack.getCardByDistribution(packType, random);
-        Card(cardAddress).createCard(packOwner, cardId);
+        card.createCard(packOwner, cardId);
     }
 
     function _getLimitedRandom(uint256 random, uint256 limit) internal pure returns (uint256) {

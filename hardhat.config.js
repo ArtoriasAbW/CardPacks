@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
+require("@nomiclabs/hardhat-etherscan");
 
 let secret = require('./secret.json');
 
@@ -27,4 +28,7 @@ module.exports = {
       accounts: secret.accounts,
     },
   },
+  etherscan: {
+    apiKey: secret.API_KEY
+  }
 };

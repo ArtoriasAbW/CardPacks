@@ -1,40 +1,30 @@
 pragma solidity ^0.8.0;
 
+// SPDX-License-Identifier: Unlicensed
+
 import "./CardPack.sol";
 import "./GameCoin.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract CardPackSale is Ownable {
-
-    event CardPackBought(address account, CardPack.CardPackType packType);
-
-    address cardPackAddress;
-    address gameCoinAddress;
-
-    mapping (CardPack.CardPackType => uint256) prices;
+    GameCoin gameCoin;
+    CardPack cardPack;
 
     constructor() Ownable() {
-        _setPrices();
     }
 
-    function buyCardPack(CardPack.CardPackType packType) public {
-        GameCoin(gameCoinAddress).transferFrom(msg.sender, owner(), prices[packType]);
-        CardPack(cardPackAddress).createCardPack(msg.sender, packType);
-        emit CardPackBought(msg.sender, packType);
+    function buyCardPack(uint256 packType) public {
+        uint256 price = cardPack.getPackPrice(packType);
+        require(price > 0, "invalid packType");
+        gameCoin.transferFrom(msg.sender, owner(), cardPack.getPackPrice(packType));
+        cardPack.createCardPack(msg.sender, packType);
     }
 
     function setCardPack(address cardPackAddress_) public onlyOwner {
-        cardPackAddress = cardPackAddress_;
+        cardPack = CardPack(cardPackAddress_);
     }
 
     function setGameCoin(address gameCoinAddress_) public onlyOwner {
-        gameCoinAddress = gameCoinAddress_;
+        gameCoin = GameCoin(gameCoinAddress_);
     }
-
-    function _setPrices() internal {
-        prices[CardPack.CardPackType.COMMON] = 10;
-        prices[CardPack.CardPackType.EPIC] = 100;
-        prices[CardPack.CardPackType.LEGENDARY] = 500;
-    }
-
 }

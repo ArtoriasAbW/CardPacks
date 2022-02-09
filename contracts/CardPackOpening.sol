@@ -1,5 +1,7 @@
 pragma solidity ^0.8.0;
 
+// SPDX-License-Identifier: Unlicensed
+
 import "./CardPack.sol";
 import "./Card.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,12 +13,15 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
     address cardPackAddress;
     address cardAddress;
 
+    CardPack cardPack;
+    Card card;
+
     bytes32 internal keyHash;
     uint256 internal fee;
 
     struct OpeningInfo {
         address packOwner;
-        CardPack.CardPackType packType;
+        uint256 packType;
     }
 
     mapping (bytes32 => OpeningInfo) requestToPackOwner;
@@ -45,7 +50,8 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
         
     }
 
-    function openCardPack(CardPack.CardPackType packType) public payable returns (bytes32) {
+    function openCardPack(uint256 packType) public payable returns (bytes32) {
+        require(cardPack.balanceOf(msg.sender, uint256(packType)) > 0, "sender doesn't have pack of this type");
         address[] memory path = new address[](2);
         path[0] = WETHaddr;
         path[1] = LINKaddr;
@@ -53,11 +59,18 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
         (bool sent, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(sent, "Failed to send Ether");
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK");
-        CardPack(cardPackAddress).removeCardPack(msg.sender, packType);
+        cardPack.removeCardPack(msg.sender, packType);
         bytes32 requestId = requestRandomness(keyHash, fee);
         requestToPackOwner[requestId].packOwner = msg.sender;
         requestToPackOwner[requestId].packType = packType;
         return requestId;
+    }
+
+    function getOpeningPrice() public view returns(uint256[] memory) {
+        address[] memory path = new address[](2);
+        path[0] = WETHaddr;
+        path[1] = LINKaddr;
+        return router.getAmountsIn(fee, path);
     }
 
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
@@ -68,16 +81,9 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
     }   
 
     function _getCard(bytes32 requestId, uint256 random) internal {
-        uint256 cardId;
-        CardPack.CardPackType packType = requestToPackOwner[requestId].packType;
+        uint256 packType = requestToPackOwner[requestId].packType;
         address packOwner = requestToPackOwner[requestId].packOwner;
-        if (packType == CardPack.CardPackType.COMMON) {
-            cardId = commonCardDistribution(random);
-        } else if (packType == CardPack.CardPackType.EPIC) {
-            cardId = epicCardDistribution(random);
-        } else if (packType == CardPack.CardPackType.LEGENDARY) {
-            cardId = legendaryCardDistribution(random);
-        }
+        uint256 cardId = cardPack.getCardByDistribution(packType, random);
         Card(cardAddress).createCard(packOwner, cardId);
     }
 
@@ -86,106 +92,10 @@ contract CardPackOpening is Ownable, VRFConsumerBase {
     }
 
     function setCardPack(address cardPackAddress_) public onlyOwner {
-        cardPackAddress = cardPackAddress_;
+        cardPack = CardPack(cardPackAddress_);
     }
 
     function setCard(address cardAddress_) public onlyOwner {
-        cardAddress = cardAddress_;
-    }
-
-    function commonCardDistribution(uint256 random) internal pure returns (uint256) {
-        // EV = 2.7
-        if (random < 32) {
-            return 1;
-        }
-        if (random < 60) {
-            return 2;
-        }
-        if (random < 76) {
-            return 3;
-        }
-        if (random < 88) {
-            return 4;
-        }
-        if (random < 93) {
-            return 5;
-        }
-        if (random < 95) {
-            return 6;
-        }
-        if (random < 97) {
-            return 7;
-        }
-        if (random < 99) {
-            return 8;
-        }
-        if (random == 99) {
-            return 9;
-        }
-        return 10;
-    }
-
-    function epicCardDistribution(uint256 random) internal pure returns (uint256) {
-        // EV = 5.09
-        if (random < 8) {
-            return 1;
-        }
-        if (random < 16) {
-            return 2;
-        }
-        if (random < 28) {
-            return 3;
-        }
-        if (random < 43) {
-            return 4;
-        }
-        if (random < 63) {
-            return 5;
-        }
-        if (random < 73) {
-            return 6;
-        }
-        if (random < 83) {
-            return 7;
-        }
-        if (random < 91) {
-            return 8;
-        }
-        if (random < 96) {
-            return 9;
-        }
-        return 10;
-    }
-
-    function legendaryCardDistribution(uint256 random) internal pure returns (uint256) {
-        // EV = 6.96
-        if (random < 2) {
-            return 1;
-        }
-        if (random < 4) {
-            return 2;
-        }
-        if (random < 10) {
-            return 3;
-        }
-        if (random < 18) {
-            return 4;
-        }
-        if (random < 28) {
-            return 5;
-        }
-        if (random < 38) {
-            return 6;
-        }
-        if (random < 50) {
-            return 7;
-        }
-        if (random < 66) {
-            return 8;
-        }
-        if (random < 88) {
-            return 9;
-        }
-        return 10;
+        card = Card(cardAddress_);
     }
 }
